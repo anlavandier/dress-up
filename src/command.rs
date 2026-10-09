@@ -59,10 +59,14 @@ impl<'a> CommandArgument<'a> {
     }
 }
 
+/// SUIT Command as found in the manifest.
 #[derive(Clone, Debug)]
 pub(crate) struct Command<'a> {
+    /// SUIT command label.
     pub(crate) label: SuitCommand,
+    /// Argument for the command.
     pub(crate) argument: CommandArgument<'a>,
+    /// Position in the manifest.
     pub(crate) position: usize,
 }
 
@@ -74,7 +78,8 @@ impl<'a> Command<'a> {
         {
             return Ok(decoder);
         }
-        Err(Error::InvalidCommandSequence {
+        Err(Error::MissingCborArgument {
+            command: self.label,
             position: self.position,
         })
     }
@@ -91,7 +96,8 @@ impl<'a> Command<'a> {
         if let CommandArgument::Report(policy) = self.argument {
             return Ok(policy);
         }
-        Err(Error::InvalidCommandSequence {
+        Err(Error::MissingReportPolicy {
+            command: self.label,
             position: self.position,
         })
     }
@@ -284,6 +290,7 @@ impl<'a, O> CommandSequenceExecutor<'a, O> {
             }
             SuitCommand::Abort => {
                 return Err(Error::ConditionMatchFail {
+                    command: SuitCommand::Abort,
                     position: command.position,
                 })
             }
@@ -331,7 +338,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     *state = res;
                     return Ok(());
                 }
-                Err(Error::ConditionMatchFail { position }) => {
+                Err(Error::ConditionMatchFail { position, .. })=> {
                     // This requires pointer arithmetic (via element_offset) because offsets get
                     // lost during bytestring wrapping
                     if let Some(element) = sequence.get(position) {
@@ -339,7 +346,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                             err_position = position;
                         }
                     }
-                }
+                },
                 Err(err) => return Err(err),
             }
         }
@@ -448,7 +455,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::ClassIdentifier, position: 0 })
                     }
                 })
         } else {
@@ -468,7 +475,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::VendorIdentifier, position: 0 })
                     }
                 })
         } else {
@@ -488,7 +495,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::DeviceIdentifier, position: 0 })
                     }
                 })
         } else {
@@ -508,7 +515,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::ComponentSlot, position: 0 })
                     }
                 })
         } else {
@@ -524,7 +531,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
         if let Some(content) = &state.content {
             let size = self.os_hooks.component_size(component)?;
             if size != content.len() {
-                return Err(Error::ConditionMatchFail { position: 0 });
+                return Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 });
             }
             let mut choice = Choice::TRUE;
             let mut buf = RwBuf::<O::ReadWriteBufferSize>::new().buf;
@@ -536,13 +543,13 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     .component_read(component, state.component_slot, offset, buf)?;
                 let manifest_content = content
                     .get(offset..(offset + read_size))
-                    .ok_or(Error::ConditionMatchFail { position: 0 })?;
+                    .ok_or(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })?;
                 choice = choice.and(manifest_content.ct_eq(buf));
             }
             if choice.to_bool() {
                 Ok(())
             } else {
-                Err(Error::ConditionMatchFail { position: 0 })
+                Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })
             }
         } else {
             Err(Error::ParameterNotSet { position: 0 })
@@ -566,7 +573,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                 if b {
                     Ok(())
                 } else {
-                    Err(Error::ConditionMatchFail { position: 0 })
+                    Err(Error::ConditionMatchFail { command: SuitCommand::ImageMatch,  position: 0 })
                 }
             })
         } else {
@@ -863,7 +870,7 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::ClassIdentifier, position: 0 })
                     }
                 })
         } else {
@@ -884,7 +891,7 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::VendorIdentifier,  position: 0 })
                     }
                 })
         } else {
@@ -905,7 +912,7 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::DeviceIdentifier,  position: 0 })
                     }
                 })
         } else {
@@ -926,7 +933,7 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { position: 0 })
+                        Err(Error::ConditionMatchFail { command: SuitCommand::ComponentSlot,  position: 0 })
                     }
                 })
         } else {
@@ -942,7 +949,7 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
         if let Some(content) = &state.content {
             let size = self.os_hooks.component_size(component).await?;
             if size != content.len() {
-                return Err(Error::ConditionMatchFail { position: 0 });
+                return Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 });
             }
             let mut choice = Choice::TRUE;
             let mut buf = RwBuf::<O::ReadWriteBufferSize>::new().buf;
@@ -955,13 +962,13 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     .await?;
                 let manifest_content = content
                     .get(offset..(offset + read_size))
-                    .ok_or(Error::ConditionMatchFail { position: 0 })?;
+                    .ok_or(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })?;
                 choice = choice.and(manifest_content.ct_eq(buf));
             }
             if choice.to_bool() {
                 Ok(())
             } else {
-                Err(Error::ConditionMatchFail { position: 0 })
+                Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })
             }
         } else {
             Err(Error::ParameterNotSet { position: 0 })
@@ -990,7 +997,7 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                 if b {
                     Ok(())
                 } else {
-                    Err(Error::ConditionMatchFail { position: 0 })
+                    Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })
                 }
             })
         } else {

@@ -1,6 +1,8 @@
 //! SUIT parsing errors.
 use core::convert::From;
 
+use crate::{consts::SuitCommand, digest::SuitDigestAlgorithm};
+
 /// SUIT manifest parsing errors
 ///
 /// TODO! ensure error locations match the location within the manifest.
@@ -17,12 +19,16 @@ pub enum Error {
     ///
     /// Returned when a SUIT command condition did not match the expected.
     ConditionMatchFail {
+        /// SUIT Command that failed because of this match failure.
+        command: SuitCommand,
         /// Position of the condition match failure in the manifest.
         position: usize,
     },
-    /// SUIT Try Each command sequence failed every sequence.
-    TryEachFail {
-        /// Position of the try each command failure in the manifest.
+    /// Mismatch between the expected and provided hash algorithm
+    HashAlgoMismatch {
+        /// Algorithm described in the manifest,
+        algo: SuitDigestAlgorithm,
+        /// Position of the hash-algorithm in the manifest.
         position: usize,
     },
     /// Unexpected end of the CBOR input.
@@ -36,15 +42,34 @@ pub enum Error {
     },
     /// Invalid common section.
     InvalidCommonSection,
+    /// Source component doesn't exists in the component list.
+    InvalidSourceComponent {
+        /// Identifier of the invalid component.
+        identifier: u32,
+    },
+    /// Missing CBOR argument for a SUIT command
+    MissingCborArgument {
+        /// Command that expected the argument
+        command: SuitCommand,
+        /// Position of the command in the manifest
+        position: usize,
+    },
+    /// Missing Report Policy for a SUIT command
+    MissingReportPolicy {
+        /// Command that expected the argument
+        command: SuitCommand,
+        /// Position of the command in the manifest
+        position: usize,
+    },
     /// No authentication object found inside the SUIT envelope.
     NoAuthObject,
-    /// No common section found inside the SUIT manifest.
-    NoCommonSection,
     /// Missing command section inside the SUIT manifest.
     NoCommandSection {
         /// The missing section number.
         section: i16,
     },
+    /// No common section found inside the SUIT manifest.
+    NoCommonSection,
     /// No component list inside the SUIT common section
     NoComponentList,
     /// No manifest object found inside the SUIT envelope.
@@ -63,10 +88,10 @@ pub enum Error {
         /// Identifier of the components.
         identifier: u32,
     },
-    /// Source component doesn't exists in the component list.
-    InvalidSourceComponent {
-        /// Identifier of the invalid component.
-        identifier: u32,
+    /// SUIT Try Each command sequence failed every sequence.
+    TryEachFail {
+        /// Position of the try each command failure in the manifest.
+        position: usize,
     },
     /// CBOR element type at location is unexpected.
     UnexpectedCbor {
@@ -115,8 +140,21 @@ impl Error {
     /// Use to modify error position on bytes-string wrapped CBOR
     pub(crate) fn add_offset(self, offset: usize) -> Self {
         match self {
-            Error::ConditionMatchFail { position } => Error::ConditionMatchFail {
+            Error::ConditionMatchFail { command, position } => Error::ConditionMatchFail {
+                command,
                 position: position + offset,
+            },
+            Error::HashAlgoMismatch { algo, position } => Error::HashAlgoMismatch {
+                algo,
+                position: position + offset
+            },
+            Error::MissingCborArgument { command, position } => Error::MissingCborArgument {
+                command,
+                position: position + offset,
+            },
+            Error::MissingReportPolicy { command, position } => Error::MissingReportPolicy {
+                command,
+                position: position + offset
             },
             Error::TryEachFail { position } => Error::TryEachFail {
                 position: position + offset,
@@ -144,9 +182,12 @@ impl Error {
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
+            Self::MissingReportPolicy { command, position} => write!(f, "missing report policy for command {command} at {position}"),
+            Self::MissingCborArgument { command, position} => write!(f, "missing cbor argument for command {command} at {position}"),
+            Self::HashAlgoMismatch { algo, position } => write!(f, "expected to use algo {algo} got something else instead; at position {position}"),
             Self::AuthenticationFailure => write!(f, "authentication of manifest failed"),
             Self::CapacityError => write!(f, "string capacity exhausted"),
-            Self::ConditionMatchFail { position } => write!(f, "condition mismatch at {position}"),
+            Self::ConditionMatchFail { command, position } => write!(f, "condition mismatch as part of {command} at {position}"),
             Self::TryEachFail { position } => write!(f, "try each sequence failed at {position}"),
             Self::EndOfInput => write!(f, "end of CBOR input"),
             Self::InvalidAuthenticationStructure => write!(f, "invalide authentication structure"),

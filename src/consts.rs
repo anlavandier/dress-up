@@ -217,7 +217,7 @@ pub enum SuitCommand {
     ///
     /// Stops manifest processing to start execution of the component.
     Invoke = 23,
-    /// Check the supplied vendor identifier in [`SuitParameter::VendorId`] with the vendor identifier stored on the device.
+    /// Check the supplied device identifier in [`SuitParameter::DeviceId`] with the device identifier stored on the device.
     DeviceIdentifier = 24,
     /// Swap the content of two components.
     ///
@@ -321,5 +321,11 @@ impl SuitCommand {
                 | SuitCommand::Swap
                 | SuitCommand::Custom(_)
         )
+    }
+}
+
+impl core::fmt::Display for SuitCommand {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
