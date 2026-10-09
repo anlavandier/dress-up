@@ -285,7 +285,7 @@ impl<'a, O> CommandSequenceExecutor<'a, O> {
         match command.label {
             SuitCommand::Unset => {
                 return Err(Error::UnsupportedCommand {
-                    command: command.label.into(),
+                    command: command.label,
                 })
             }
             SuitCommand::Abort => {
@@ -305,7 +305,7 @@ impl<'a, O> CommandSequenceExecutor<'a, O> {
             }
             _ => {
                 return Err(Error::UnsupportedCommand {
-                    command: command.label.into(),
+                    command: command.label,
                 });
             }
         }
@@ -385,10 +385,10 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                 self.cond_image_match(state, component)?;
             }
             SuitCommand::Invoke => Err(Error::UnsupportedCommand {
-                command: SuitCommand::Invoke.into(),
+                command: SuitCommand::Invoke,
             })?,
             SuitCommand::RunSequence => Err(Error::UnsupportedCommand {
-                command: SuitCommand::RunSequence.into(),
+                command: SuitCommand::RunSequence,
             })?,
             SuitCommand::Swap => self.directive_swap(state, component_info, self.components)?,
             SuitCommand::TryEach => {
@@ -402,9 +402,9 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                 self.directive_write(state, component)?;
             }
             SuitCommand::Custom(n) => {
-                if n < -256 {
-                    return Err(Error::UnsupportedCommand {
-                        command: command.label.into(),
+                if n > -256 {
+                    return Err(Error::NotACommand {
+                        label: n,
                     });
                 }
                 self.custom_command(n, state, component)?;
@@ -819,10 +819,10 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                 self.async_cond_image_match(state, component).await?;
             }
             SuitCommand::Invoke => Err(Error::UnsupportedCommand {
-                command: SuitCommand::Invoke.into(),
+                command: SuitCommand::Invoke,
             })?,
             SuitCommand::RunSequence => Err(Error::UnsupportedCommand {
-                command: SuitCommand::RunSequence.into(),
+                command: SuitCommand::RunSequence,
             })?,
             SuitCommand::Swap => {
                 self.async_directive_swap(state, component_info, self.components)
@@ -835,10 +835,8 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                 self.async_directive_write(state, component).await?;
             }
             SuitCommand::Custom(n) => {
-                if n < -256 {
-                    return Err(Error::UnsupportedCommand {
-                        command: command.label.into(),
-                    });
+                if n > -256 {
+                    return Err(Error::NotACommand { label: n });
                 }
                 self.async_custom_command(n, state, component).await?;
             }
@@ -1517,7 +1515,12 @@ mod tests {
             CommandSequenceExecutor::new(input.into(), create_empty_components(), 0, &hooks);
         let state = ManifestState::default();
         let res = sequence.process(state, &info).unwrap_err();
-        assert_eq!(res, Error::UnsupportedCommand { command: 0 });
+        assert_eq!(
+            res,
+            Error::UnsupportedCommand {
+                command: SuitCommand::Unset
+            }
+        );
 
         let sequence = CommandSequence::new(input.into(), 0);
         let properties = sequence.properties();
@@ -1731,7 +1734,12 @@ mod tests {
         let sequence =
             CommandSequenceExecutor::new(input.into(), create_empty_components(), 0, &hooks);
         let res = sequence.process(state, &info).unwrap_err();
-        assert_eq!(res, Error::UnsupportedParameter { parameter: 0 });
+        assert_eq!(
+            res,
+            Error::UnsupportedParameter {
+                parameter: crate::consts::SuitParameter::Unset
+            }
+        );
     }
 
     #[test]

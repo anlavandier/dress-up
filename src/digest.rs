@@ -155,11 +155,7 @@ impl Hasher {
             #[cfg(feature = "shake256")]
             SuitDigestAlgorithm::Shake256 => Self::Shake256(sha3::Shake256::default()),
             #[allow(unreachable_patterns)]
-            algo => {
-                return Err(Error::UnsupportedDigestAlgo {
-                    algorithm: algo.into(),
-                })
-            }
+            algo => return Err(Error::UnsupportedDigestAlgo { algorithm: algo }),
         })
     }
 

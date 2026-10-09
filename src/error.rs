@@ -1,7 +1,10 @@
 //! SUIT parsing errors.
 use core::convert::From;
 
-use crate::{consts::SuitCommand, digest::SuitDigestAlgorithm};
+use crate::{
+    consts::{SuitCommand, SuitParameter},
+    digest::SuitDigestAlgorithm,
+};
 
 /// SUIT manifest parsing errors
 ///
@@ -78,6 +81,21 @@ pub enum Error {
     NoManifestVersion,
     /// No manifest sequence number found inside the manifest object.
     NoSequenceNumber,
+    /// SUIT command is not recognized as such by the processor.
+    NotACommand {
+        /// Integer representation of the command.
+        label: i32,
+    },
+    /// SUIT Digest Algorithm is not recognized as such by the processor.
+    NotADigestAlgo {
+        /// integer representation of the digest algorithm.
+        label: i64,
+    },
+    /// SUIT parameter is not recognized as such by the processor.
+    NotAParameter {
+        /// Integer representation of the parameter.
+        label: i32,
+    },
     /// Parameter required for the condition is not set.
     ParameterNotSet {
         /// Position of the command for which the parameter is not set in the manifest.
@@ -105,8 +123,8 @@ pub enum Error {
     },
     /// SUIT Command is not supported by the processor.
     UnsupportedCommand {
-        /// The unsupported command number.
-        command: i32,
+        /// The unsupported command.
+        command: SuitCommand,
     },
     /// SUIT component identifier is not supported by the processor.
     UnsupportedComponentIdentifier {
@@ -115,15 +133,18 @@ pub enum Error {
     },
     /// SUIT digest algorithm is not supported by the processor.
     UnsupportedDigestAlgo {
-        /// The algorithm number.
-        algorithm: i64,
+        /// The unsupported algorithm.
+        algorithm: SuitDigestAlgorithm,
     },
     /// SUIT manifest version number is not supported by the processor.
-    UnsupportedManifestVersion,
+    UnsupportedManifestVersion {
+        /// The unsupported SUIT manifest version.
+        version: u8
+    },
     /// SUIT parameter is not supported by the processor.
     UnsupportedParameter {
-        /// The parameter number.
-        parameter: i32,
+        /// The unsupported parameter.
+        parameter: SuitParameter,
     },
     /// UTF-8 error while decoding the component identifier.
     Utf8Error {
@@ -134,7 +155,7 @@ pub enum Error {
 
 impl Error {
     pub(crate) fn digest_algo_error(value: i64) -> Self {
-        Error::UnsupportedDigestAlgo { algorithm: value }
+        Error::NotADigestAlgo { label: value }
     }
 
     /// Use to modify error position on bytes-string wrapped CBOR
@@ -237,6 +258,18 @@ impl core::fmt::Display for Error {
                     "source component index {identifier} not found in the component list"
                 )
             }
+            Self::NotACommand { label } => write!(
+                f,
+                "integer {label} not recognized as a SUIT command by the processor"
+            ),
+            Self::NotADigestAlgo { label } => write!(
+                f,
+                "integer {label} not recognized as a SUIT digest algorithm by the processor"
+            ),
+            Self::NotAParameter { label } => write!(
+                f,
+                "integer {label} not recognized as a SUIT parameter by the processor"
+            ),
             Self::UnsupportedCommand { command } => write!(f, "command {command} not supported"),
             Self::UnsupportedComponentIdentifier { identifier } => {
                 write!(f, "component identifier {identifier} not supported")
@@ -244,7 +277,7 @@ impl core::fmt::Display for Error {
             Self::UnsupportedDigestAlgo { algorithm } => {
                 write!(f, "digest algorithm {algorithm} not supported")
             }
-            Self::UnsupportedManifestVersion => write!(f, "manifest version not supported"),
+            Self::UnsupportedManifestVersion { version} => write!(f, "manifest version {version} not supported"),
             Self::UnsupportedParameter { parameter } => {
                 write!(f, "parameter {parameter} not supported")
             }
