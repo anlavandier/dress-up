@@ -139,7 +139,7 @@ pub enum Error {
     /// SUIT manifest version number is not supported by the processor.
     UnsupportedManifestVersion {
         /// The unsupported SUIT manifest version.
-        version: u8
+        version: u8,
     },
     /// SUIT parameter is not supported by the processor.
     UnsupportedParameter {
@@ -277,7 +277,9 @@ impl core::fmt::Display for Error {
             Self::UnsupportedDigestAlgo { algorithm } => {
                 write!(f, "digest algorithm {algorithm} not supported")
             }
-            Self::UnsupportedManifestVersion { version} => write!(f, "manifest version {version} not supported"),
+            Self::UnsupportedManifestVersion { version } => {
+                write!(f, "manifest version {version} not supported")
+            }
             Self::UnsupportedParameter { parameter } => {
                 write!(f, "parameter {parameter} not supported")
             }

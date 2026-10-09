@@ -403,9 +403,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
             }
             SuitCommand::Custom(n) => {
                 if n > -256 {
-                    return Err(Error::NotACommand {
-                        label: n,
-                    });
+                    return Err(Error::NotACommand { label: n });
                 }
                 self.custom_command(n, state, component)?;
             }
