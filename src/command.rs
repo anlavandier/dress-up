@@ -338,7 +338,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     *state = res;
                     return Ok(());
                 }
-                Err(Error::ConditionMatchFail { position, .. })=> {
+                Err(Error::ConditionMatchFail { position, .. }) => {
                     // This requires pointer arithmetic (via element_offset) because offsets get
                     // lost during bytestring wrapping
                     if let Some(element) = sequence.get(position) {
@@ -346,7 +346,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                             err_position = position;
                         }
                     }
-                },
+                }
                 Err(err) => return Err(err),
             }
         }
@@ -455,7 +455,10 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::ClassIdentifier, position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::ClassIdentifier,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -475,7 +478,10 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::VendorIdentifier, position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::VendorIdentifier,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -495,7 +501,10 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::DeviceIdentifier, position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::DeviceIdentifier,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -515,7 +524,10 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::ComponentSlot, position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::ComponentSlot,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -531,7 +543,10 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
         if let Some(content) = &state.content {
             let size = self.os_hooks.component_size(component)?;
             if size != content.len() {
-                return Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 });
+                return Err(Error::ConditionMatchFail {
+                    command: SuitCommand::CheckContent,
+                    position: 0,
+                });
             }
             let mut choice = Choice::TRUE;
             let mut buf = RwBuf::<O::ReadWriteBufferSize>::new().buf;
@@ -541,15 +556,22 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                 let buf = &mut buf[0..read_size];
                 self.os_hooks
                     .component_read(component, state.component_slot, offset, buf)?;
-                let manifest_content = content
-                    .get(offset..(offset + read_size))
-                    .ok_or(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })?;
+                let manifest_content =
+                    content
+                        .get(offset..(offset + read_size))
+                        .ok_or(Error::ConditionMatchFail {
+                            command: SuitCommand::CheckContent,
+                            position: 0,
+                        })?;
                 choice = choice.and(manifest_content.ct_eq(buf));
             }
             if choice.to_bool() {
                 Ok(())
             } else {
-                Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })
+                Err(Error::ConditionMatchFail {
+                    command: SuitCommand::CheckContent,
+                    position: 0,
+                })
             }
         } else {
             Err(Error::ParameterNotSet { position: 0 })
@@ -573,7 +595,10 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                 if b {
                     Ok(())
                 } else {
-                    Err(Error::ConditionMatchFail { command: SuitCommand::ImageMatch,  position: 0 })
+                    Err(Error::ConditionMatchFail {
+                        command: SuitCommand::ImageMatch,
+                        position: 0,
+                    })
                 }
             })
         } else {
@@ -870,7 +895,10 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::ClassIdentifier, position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::ClassIdentifier,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -891,7 +919,10 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::VendorIdentifier,  position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::VendorIdentifier,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -912,7 +943,10 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::DeviceIdentifier,  position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::DeviceIdentifier,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -933,7 +967,10 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                     if b {
                         Ok(())
                     } else {
-                        Err(Error::ConditionMatchFail { command: SuitCommand::ComponentSlot,  position: 0 })
+                        Err(Error::ConditionMatchFail {
+                            command: SuitCommand::ComponentSlot,
+                            position: 0,
+                        })
                     }
                 })
         } else {
@@ -949,7 +986,10 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
         if let Some(content) = &state.content {
             let size = self.os_hooks.component_size(component).await?;
             if size != content.len() {
-                return Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 });
+                return Err(Error::ConditionMatchFail {
+                    command: SuitCommand::CheckContent,
+                    position: 0,
+                });
             }
             let mut choice = Choice::TRUE;
             let mut buf = RwBuf::<O::ReadWriteBufferSize>::new().buf;
@@ -960,15 +1000,22 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                 self.os_hooks
                     .component_read(component, state.component_slot, offset, buf)
                     .await?;
-                let manifest_content = content
-                    .get(offset..(offset + read_size))
-                    .ok_or(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })?;
+                let manifest_content =
+                    content
+                        .get(offset..(offset + read_size))
+                        .ok_or(Error::ConditionMatchFail {
+                            command: SuitCommand::CheckContent,
+                            position: 0,
+                        })?;
                 choice = choice.and(manifest_content.ct_eq(buf));
             }
             if choice.to_bool() {
                 Ok(())
             } else {
-                Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })
+                Err(Error::ConditionMatchFail {
+                    command: SuitCommand::CheckContent,
+                    position: 0,
+                })
             }
         } else {
             Err(Error::ParameterNotSet { position: 0 })
@@ -997,7 +1044,10 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                 if b {
                     Ok(())
                 } else {
-                    Err(Error::ConditionMatchFail { command: SuitCommand::CheckContent,  position: 0 })
+                    Err(Error::ConditionMatchFail {
+                        command: SuitCommand::CheckContent,
+                        position: 0,
+                    })
                 }
             })
         } else {

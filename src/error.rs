@@ -146,7 +146,7 @@ impl Error {
             },
             Error::HashAlgoMismatch { algo, position } => Error::HashAlgoMismatch {
                 algo,
-                position: position + offset
+                position: position + offset,
             },
             Error::MissingCborArgument { command, position } => Error::MissingCborArgument {
                 command,
@@ -154,7 +154,7 @@ impl Error {
             },
             Error::MissingReportPolicy { command, position } => Error::MissingReportPolicy {
                 command,
-                position: position + offset
+                position: position + offset,
             },
             Error::TryEachFail { position } => Error::TryEachFail {
                 position: position + offset,
@@ -182,12 +182,23 @@ impl Error {
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::MissingReportPolicy { command, position} => write!(f, "missing report policy for command {command} at {position}"),
-            Self::MissingCborArgument { command, position} => write!(f, "missing cbor argument for command {command} at {position}"),
-            Self::HashAlgoMismatch { algo, position } => write!(f, "expected to use algo {algo} got something else instead; at position {position}"),
+            Self::MissingReportPolicy { command, position } => write!(
+                f,
+                "missing report policy for command {command} at {position}"
+            ),
+            Self::MissingCborArgument { command, position } => write!(
+                f,
+                "missing cbor argument for command {command} at {position}"
+            ),
+            Self::HashAlgoMismatch { algo, position } => write!(
+                f,
+                "expected to use algo {algo} got something else instead; at position {position}"
+            ),
             Self::AuthenticationFailure => write!(f, "authentication of manifest failed"),
             Self::CapacityError => write!(f, "string capacity exhausted"),
-            Self::ConditionMatchFail { command, position } => write!(f, "condition mismatch as part of {command} at {position}"),
+            Self::ConditionMatchFail { command, position } => {
+                write!(f, "condition mismatch as part of {command} at {position}")
+            }
             Self::TryEachFail { position } => write!(f, "try each sequence failed at {position}"),
             Self::EndOfInput => write!(f, "end of CBOR input"),
             Self::InvalidAuthenticationStructure => write!(f, "invalide authentication structure"),
