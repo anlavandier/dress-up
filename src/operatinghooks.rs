@@ -49,7 +49,7 @@ pub trait OperatingHooks {
         _component_slot: u64,
     ) -> Result<bool, Error> {
         Err(Error::UnsupportedCommand {
-            command: SuitCommand::DeviceIdentifier,
+            command: SuitCommand::ComponentSlot,
         })
     }
 
@@ -169,7 +169,7 @@ pub trait AsyncOperatingHooks {
         _component_slot: u64,
     ) -> Result<bool, Error> {
         Err(Error::UnsupportedCommand {
-            command: SuitCommand::DeviceIdentifier,
+            command: SuitCommand::ComponentSlot,
         })
     }
 

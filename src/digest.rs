@@ -31,7 +31,7 @@ impl core::fmt::Display for SuitDigestAlgorithm {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::Sha256 => write!(f, "SHA-256"),
-            Self::Shake128 => write!(f, "SHA-128"),
+            Self::Shake128 => write!(f, "SHAKE-128"),
             Self::Sha384 => write!(f, "SHA-384"),
             Self::Sha512 => write!(f, "SHA-512"),
             Self::Shake256 => write!(f, "SHAKE-256"),
