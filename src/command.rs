@@ -402,7 +402,7 @@ impl<'a, O: OperatingHooks> CommandSequenceExecutor<'a, O> {
                 self.directive_write(state, component)?;
             }
             SuitCommand::Custom(n) => {
-                if n > -256 {
+                if n > -257 {
                     return Err(Error::NotACommand { label: n });
                 }
                 self.custom_command(n, state, component)?;
@@ -833,7 +833,7 @@ impl<'a, O: AsyncOperatingHooks> CommandSequenceExecutor<'a, O> {
                 self.async_directive_write(state, component).await?;
             }
             SuitCommand::Custom(n) => {
-                if n > -256 {
+                if n > -257 {
                     return Err(Error::NotACommand { label: n });
                 }
                 self.async_custom_command(n, state, component).await?;
